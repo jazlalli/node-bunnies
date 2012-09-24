@@ -1,0 +1,13 @@
+{
+	"name" : "node-bunnies",
+	"version" : "0.0.1",
+	"author" : "Jasdeep Lalli",
+	"description" : "AMQP listener and client notification via Server Sent Events",
+	"dependencies" : {
+		"amqp" : "0.9.x"
+	},
+	"engines" : {
+		"node" : "0.8.x",
+		"npm" : "1.1.x"
+	}
+}
