@@ -3,7 +3,7 @@ var fs = require('fs');
 var amqp = require('amqp');
 
 var connection = amqp.createConnection(
-  {url: "amqp://a556ed26-bd69-48f7-b97e-2744796b258a_apphb.com:IRebEvT0LoS4KAVwLq9iny7nJ-AltUDl@bunny.cloudamqp.com/a556ed26-bd69-48f7-b97e-2744796b258a_apphb.com"});
+  {url: "<your amqp url>"});
 
 var clients = [];
   
@@ -37,12 +37,12 @@ http.createServer(function (request, response) {
 console.log('Server running on port 1337');
 
 connection.on('ready', function () {
-  connection.exchange("Visits Exchange", options={passive: 'true'}, function(exchange) {
+  connection.exchange("<exchange name>", options={passive: 'true'}, function(exchange) {
 
     console.log('connected to exchange: ' + exchange.name);
 
     // Recieve messages
-    connection.queue("Node Visits Queue", function(queue){
+    connection.queue("<queue name>", function(queue){
       console.log('Created queue: ' + queue.name);
       queue.bind(exchange, '#'); 
       queue.subscribe(function (message, headers, deliveryInfo) {
@@ -56,18 +56,7 @@ connection.on('ready', function () {
           
           console.log('pushed notification');
         }
-
-        Statistics(payload);
       })
     });
   });
 });
-
-function Statistics(payload){
-  
-  var rawUrl = payload.QUERY_STRING;
-  var parsedUrl = rawUrl.split('&')[1];
-  var page = parsedUrl.substr(4, parsedUrl.length);
-
-  console.log(page);
-}
