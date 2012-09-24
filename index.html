@@ -1,26 +1,27 @@
 <html>
 <head>
-    <title>Real Time Visits</title>
+    <title>Analytics</title>
     <script type="text/javascript" src="//ajax.googleapis.com/ajax/libs/jquery/1.8.1/jquery.min.js"></script>
 </head>
 <body>
     <h1>
         Real-Time Visits</h1>
     <p>
-        sample app demonstrating push notifications of visits to live website</p>
+        sample app demonstrating push notifications of visit data</p>
     
     <div>
-      <b>Total visitors since <span id="count"></span></b>
+      <b>Total visitors on <span id="date"></span></b>
+      <h2 id="count"></h2>
     </div>
     
     <div id="messages"></div>
     
     <script type="text/javascript">
-      var visitors = 0;
       var start;
       
       $(document).ready(function(){
         start = new Date();
+        $('#date').html(start.getDate() + '/' + (start.getMonth()+1) + '/' + start.getFullYear());
       });      
       
       var source = new EventSource('http://localhost:1337');
@@ -29,22 +30,23 @@
           console.log('new connection')
       };
 
-      source.onmessage = function (e) {
-          visitors++;
-          $('#count').html(start + ' <h2>' + visitors + '</h2>');
+      source.onmessage = function (e) {          
+          var visits = JSON.parse(e.data);
+          console.log(visits);
           
-          var visit = JSON.parse(e.data);
+          $('#count').html(visits.length);
 
-          $('#messages').append('<div>User Agent: ' + visit.HTTP_USER_AGENT + '</div>');
-          $('#messages').append('<div>Query String: ' + visit.QUERY_STRING + '</div>');
-          $('#messages').append('<div>Address: ' + visit.REMOTE_ADDR + '</div>');
-          $('#messages').append('<div>Media Source: ' + visit.MediaSource + '</div>');
-          $('#messages').append('<div>Campaign: ' + visit.Campaign + '</div>');
-          $('#messages').append('<div>Keyword: ' + visit.Keyword + '</div>');
-          $('#messages').append('<div>AdGroup: ' + visit.AdGroup + '</div>');
-          $('#messages').append('<div>Referrer: ' + visit.Referrer + '</div>');
-          $('#messages').append('<div>DateTime' + visit.CreateTime + '</div>');
-          $('#messages').append('<br />');
+          for(var i=0;i<visits.length;i++) {
+            $('#messages').append('<div>URL: ' + visits[i].url + '</div>');
+            $('#messages').append('<div>IP: ' + visits[i].ipaddress + '</div>');
+            $('#messages').append('<div>User Agent: ' + visits[i].useragent + '</div>');
+            $('#messages').append('<div>Media Source: ' + visits[i].mediasource + '</div>');
+            $('#messages').append('<div>Campaign: ' + visits[i].campaign + '</div>');
+            $('#messages').append('<div>Referrer: ' + visits[i].referrer + '</div>');
+            $('#messages').append('<div>UserId: ' + visits[i].userid + '</div>');
+            $('#messages').append('<div>DateTime: ' + visits[i].createtime + '</div>');
+            $('#messages').append('<br />');
+          }
       };
 
       source.onerror = function (e) {
