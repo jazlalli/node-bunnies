@@ -4,7 +4,7 @@
 	"author" : "Jasdeep Lalli",
 	"description" : "AMQP listener and client notification via Server Sent Events",
 	"dependencies" : {
-		"amqp" : "0.9.x"
+		"amqp" : "0.x.x"
 	},
 	"engines" : {
 		"node" : "0.8.x",
