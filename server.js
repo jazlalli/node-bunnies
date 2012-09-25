@@ -3,7 +3,7 @@ var fs = require('fs');
 var amqp = require('amqp');
 
 var connection = amqp.createConnection({
-  url: "<your amqp url>"
+  url: "< !APIKEY! >"
 });
 
 var AppData = {
