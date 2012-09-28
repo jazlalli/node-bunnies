@@ -3,12 +3,12 @@ var fs = require('fs');
 var amqp = require('amqp');
 
 var connection = amqp.createConnection({
-  url: "<your amqp url>"
+  url: "amqp url"
 });
 
 var AppData = {
   clients : [],
-  visitsToday : []
+  visits : []
 };
 
 http.createServer(function (request, response) {
@@ -24,10 +24,6 @@ http.createServer(function (request, response) {
 
     AppData.clients.push(response);
     console.log('New connection');
-
-    for (var i=0; i<AppData.clients.length; i++){
-      AppData.clients[i].write('data: ' + JSON.stringify(AppData.visitsToday) + '\n\n');
-    }
   } 
   else {
     response.writeHead(200, {'Content-Type': 'text/html'});
@@ -49,23 +45,24 @@ connection.on('ready', function () {
   // connect to existing exchange
   connection.exchange("Visits Exchange", options={passive: 'true'}, function (exchange) {
     console.log('Connected to: ' + exchange.name);
+
     // define queue
-    connection.queue("Node Visits Queue", function (queue) {
-      
+    connection.queue("Node Visits Queue", function (queue) {      
       console.log('Created queue: ' + queue.name);
       queue.bind(exchange, '#'); 
       
       // receive messages
-      queue.subscribe(function (message, headers, deliveryInfo) {
-        
+      queue.subscribe(function (message, headers, deliveryInfo) {        
         var encoded_payload = unescape(message.data);
         var payload = JSON.parse(encoded_payload);
         var visitData = parse_message(payload);
+
+        // send only luma messages
+        if (visitData.url.indexOf('luma.co.uk') !== -1) {
+          AppData.visits.push(visitData);
+        }
         
-        init_dataObj();
-        AppData.visitsToday.push(visitData);
-        
-        for (var i=0; i<AppData.clients.length; i++){
+        for (var i = 0; i < AppData.clients.length; i++){
           AppData.clients[i].write('data: ' + JSON.stringify([visitData]) + '\n\n');
         }
       })
@@ -79,36 +76,21 @@ function parse_message (payload) {
   var url = urlParam.substr(4, urlParam.length);
   
   return {
-    url : url,
-    ipaddress : payload.REMOTE_ADDR,
-    useragent : payload.HTTP_USER_AGENT,
-    site : payload.mi_urlinfo_site,
-    product : payload.mi_urlinfo_product,
-    pagetype : payload.mi_urlinfo_type,
-    mediasource : payload.MediaSource,
-    campaign : payload.Campaign,
-    adgroup : payload.AdGroup,
-    referrer : payload.Referrer,
-    userid : payload['MI-LifeTimeCookie'],
-    createtime : payload.CreateTime
+    url: url,
+    ipaddress: payload.REMOTE_ADDR,
+    useragent: payload.HTTP_USER_AGENT,
+    site: payload.mi_urlinfo_site,
+    product: payload.mi_urlinfo_product,
+    pagetype: payload.mi_urlinfo_type,
+    mediasource: payload.MediaSource,
+    campaign: payload.Campaign,
+    adgroup: payload.AdGroup,
+    referrer: payload.Referrer,
+    userid: payload['MI-LifeTimeCookie'],
+    createtime: payload.CreateTime,
+    latitude: '',
+    longitude: ''
   };
-}
-
-// keep using global object, or clean it out and start again
-function init_dataObj () {
-  var now = new Date();
-  
-  var lastMessageDate;
-
-  if (AppData.visitsToday.length > 0){
-    lastMessageDate = parse_date(AppData.visitsToday[AppData.visitsToday.length-1].createtime);
-  }
-
-  if (lastMessageDate){
-    if (lastMessageDate.getDate() > now.getDate() || (now.getDate() === 1 && lastMessageDate.getDate() > 1)) {
-      AppData.visitsToday.length = 0;
-    }
-  }
 }
 
 // make a nice date object from string dd/mm/YYYY HH:MM:ss
