@@ -105,7 +105,7 @@
       }
     ];
 
-    var source = new EventSource('http://localhost:1337');
+    var source = new EventSource('http://localhost:5000');
 
     $(document).ready(function(){
       map = new google.maps.Map(document.getElementById("map_canvas"), {
@@ -124,7 +124,7 @@
       var visitMsgs = JSON.parse(e.data);
 
       for (var i = 0; i < visitMsgs.length; i++) {        
-        var geoService = 'http://api.ipinfodb.com/v3/ip-city/?key=&ip=' + visitMsgs[i].ipaddress + '&format=json';
+        var geoService = 'http://api.ipinfodb.com/v3/ip-city/?key=412188ad591298ddd12b5ab67f6523bb7b89075d4f81965a15a7d4b985e0a994&ip=' + visitMsgs[i].ipaddress + '&format=json';
 
         if (markers.length % 2 !== 0) {
           geoService = 'http://freegeoip.net/json/' + visitMsgs[i].ipaddress;
