@@ -12,17 +12,37 @@
     }
     #map_canvas { height: 100%; }
     #wrapper {
-      font-family: ;
+      width: 300px;
       padding: 20px;
       position: absolute;
       top: 10%;
-      right: 20%;
+      right: 15%;
       background-color: white;
       z-index: 100;
 
       -webkit-border-radius: 10px;
       -moz-border-radius: 10px;
       border-radius: 10px;
+      -webkit-box-shadow: 8px 8px 8px 0px #666;
+      -moz-box-shadow: 8px 8px 8px 0px #666;
+      box-shadow: 8px 8px 8px 0px #666;
+    }
+
+    #count {
+      width: 150px;
+      padding: 10px;
+      position: absolute;
+      top: 30px;
+      left: 120px;
+      background-color: white;
+      z-index: 100;
+
+      -webkit-border-radius: 10px;
+      -moz-border-radius: 10px;
+      border-radius: 10px;
+      -webkit-box-shadow: 8px 8px 8px 0px #666;
+      -moz-box-shadow: 8px 8px 8px 0px #666;
+      box-shadow: 8px 8px 8px 0px #666;
     }
 
     .table { width: 100%; }
@@ -31,21 +51,24 @@
   </style>
 </head>
 <body>
+  
+  <div id="count">
+
+  </div>
+
   <div id="wrapper">
-    <h1>Top sources</h1>
+    <h2>Top media sources</h2>
     <div id="topvisits">
-
-
     </div>
   </div>
     
   <div id="map_canvas"></div>
 
   <script src="//ajax.googleapis.com/ajax/libs/jquery/1.8.1/jquery.min.js"></script>
-  <script src="//maps.google.com/maps/api/js?key=api key&sensor=false"></script>
+  <script src="//maps.google.com/maps/api/js?key=AIzaSyA7LWCclkz2jFxhtMtnnjrElk8j-Lgf3ec&sensor=false"></script>
   
   <script type="text/javascript">    
-    var totalVisits = 1;
+    var totalVisits;
     var map;
     var markers = [];
     var topvisits = [];
@@ -87,7 +110,7 @@
     $(document).ready(function(){
       map = new google.maps.Map(document.getElementById("map_canvas"), {
         zoom: 6,
-        center: new google.maps.LatLng('54', '3'),
+        center: new google.maps.LatLng('54.4', '0'),
         mapTypeId: google.maps.MapTypeId.ROADMAP
       });
       map.setOptions({styles: stylesArray});
@@ -99,44 +122,65 @@
 
     source.onmessage = function (e) {          
       var visitMsgs = JSON.parse(e.data);
-      
+
       for (var i = 0; i < visitMsgs.length; i++) {        
-        
-        //http://api.ipinfodb.com/v3/ip-city/?key=412188ad591298ddd12b5ab67f6523bb7b89075d4f81965a15a7d4b985e0a994&ip='+ visitMsgs[i]ipaddress +'&format=json'
-        //http://freegeoip.net/json/' + visitMsgs[i].ipaddress
+        var geoService = 'http://api.ipinfodb.com/v3/ip-city/?key=412188ad591298ddd12b5ab67f6523bb7b89075d4f81965a15a7d4b985e0a994&ip=' + visitMsgs[i].ipaddress + '&format=json';
 
-        $.getJSON('http://api.ipinfodb.com/v3/ip-city/?key=412188ad591298ddd12b5ab67f6523bb7b89075d4f81965a15a7d4b985e0a994&ip=' + visitMsgs[i].ipaddress + '&format=json', function (data) {
-          var image = 'http://i.imgur.com/0AynL.png';
-          var marker = new google.maps.Marker({
-            position: new google.maps.LatLng(data.latitude, data.longitude),
-            map: map,
-            icon: image,
-            time: new Date()
-          });
+        if (markers.length % 2 !== 0) {
+          geoService = 'http://freegeoip.net/json/' + visitMsgs[i].ipaddress;
+        }
 
-          markers.push(marker);
+        console.log(geoService);
+
+        $.ajax({
+          type: 'GET',
+          url: geoService , 
+          dataType: 'jsonp',
+          success: function (data) {
+            var image = 'http://i.imgur.com/0AynL.png';
+            var marker = new google.maps.Marker({
+              position: new google.maps.LatLng(data.latitude, data.longitude),
+              map: map,
+              icon: image,
+              time: new Date()
+            });
+
+            markers.push(marker);
+          }
         });
 
         topvisits = visitEventCounter.Counter(visitMsgs[i]);
 
         $('#topvisits').html("");
-        for (var y = 0; y < 5; y++) {
-          $('#topvisits').append("<p class='table'>" + (y+1) + ": " + topvisits[y][1] + "<span class='percentage'>" + Math.round(((topvisits[y][0] / totalVisits).toFixed(2))*100) + "%</span></p>");
+        var total = 0;
+        for (var y = 1; y <= 5; y++) {
+          var percentage = parseFloat((topvisits[y-1][0] / totalVisits)*100);
+          total = total + percentage;
+
+          $('#topvisits').append("<p class='table'>" + y + ": " + (topvisits[y-1][1] == null ? 'no source' : topvisits[y-1][1]) + "<span class='percentage'>" + percentage.toFixed(2) + "%</span></p>");
         }
+        $('#topvisits').append("<p class='table'>Total: <span class='percentage'>" + total.toFixed(0) + "%</span></p>");
       }
 
       // remove markers older than 20mins
       var toRemove = jQuery.grep(markers, function (marker, index) {
         var now = new Date();        
         var cutOff = new Date(now);
-        cutOff.setMinutes(now.getMinutes() - 20);
+        cutOff.setSeconds(now.getSeconds() - 60);
         
         return (marker.time < cutOff);
       });
 
       $.each(toRemove, function () {
-        this.setMap(null);
+        if (markers.indexOf(this) >= 0) {
+          markers[markers.indexOf(this)].setMap(null);
+          markers.splice(markers.indexOf(this), 1);
+        }
       });
+
+      toRemove = [];
+
+      $('#count').html("<h1 style='font-size: 48px; padding: 3px; margin: 3px'>" + (markers.length).toFixed(1) + "</h1> pageviews / min");
     }
 
     source.onerror = function (e) {
@@ -145,40 +189,32 @@
       }
     };
 
+    var visitEventCounter = {
+      Counter: function (visit) {
+        totalVisits = 1;
 
-
-var visitEventCounter = {
-  Counter: function (visit) {
-    totalVisits = 1;
-
-    var obj = new Array(0);
-    obj[0] = 1;
-    obj[1] = visit.mediasource;
-    var hit = false;
-    for (var y = 0; y < topvisits.length; y++) {
-      totalVisits = totalVisits + topvisits[y][0]
-      
-      if (topvisits[y][1] === visit.mediasource) {
-        obj[0] = topvisits[y][0] + 1;
-        topvisits[y] = obj;
-        hit = true;
+        var obj = new Array(0);
+        obj[0] = 1;
+        obj[1] = visit.mediasource;
+        var hit = false;
+        for (var y = 0; y < topvisits.length; y++) {
+          totalVisits = totalVisits + topvisits[y][0]
+          
+          if (topvisits[y][1] === visit.mediasource) {
+            obj[0] = topvisits[y][0] + 1;
+            topvisits[y] = obj;
+            hit = true;
+          }
+        }
+        if (hit === false) {
+          topvisits[topvisits.length] = obj;
+        }
+        topvisits.sort(function (a, b) {
+          return (a[0] > b[0] ? -1 : (a[0] < b[0] ? 1 : 0));
+        });
+        return topvisits;
       }
     }
-    if (hit === false) {
-      topvisits[topvisits.length] = obj;
-    }
-    topvisits.sort(function (a, b) {
-      return (a[0] > b[0] ? -1 : (a[0] < b[0] ? 1 : 0));
-    });
-    return topvisits;
-  }
-}
-
-
-
-
-
-
   </script>
 </body>
 </html>

@@ -3,7 +3,7 @@ var fs = require('fs');
 var amqp = require('amqp');
 
 var connection = amqp.createConnection({
-  url: "amqp url"
+  url: "amqp://a556ed26-bd69-48f7-b97e-2744796b258a_apphb.com:IRebEvT0LoS4KAVwLq9iny7nJ-AltUDl@bunny.cloudamqp.com/a556ed26-bd69-48f7-b97e-2744796b258a_apphb.com"
 });
 
 var AppData = {
@@ -11,7 +11,7 @@ var AppData = {
   visits : []
 };
 
-http.createServer(function (request, response) {
+var server = http.createServer(function (request, response) {
   // determine whether it is the eventstream request
   if (request.headers.accept && request.headers.accept === 'text/event-stream') {
     response.writeHead(200, {
@@ -32,14 +32,17 @@ http.createServer(function (request, response) {
   }
   
   request.on('close', function () {
-		console.log('connection closing');
+		console.log('Connection closing');
     if (AppData.clients.indexOf(response) >= 0) {
       AppData.clients.pop(response);
     }
 	});  
-}).listen(1337);
+});
 
-console.log('Server running on port 1337');
+var port = process.env.PORT || 1337;
+server.listen(port);
+
+console.log('Server running on port ' + port);
 
 connection.on('ready', function () {
   // connect to existing exchange
@@ -53,17 +56,16 @@ connection.on('ready', function () {
       
       // receive messages
       queue.subscribe(function (message, headers, deliveryInfo) {        
-        var encoded_payload = unescape(message.data);
+        var encoded_payload = unescape(escape(message.data));
         var payload = JSON.parse(encoded_payload);
         var visitData = parse_message(payload);
 
         // send only luma messages
         if (visitData.url.indexOf('luma.co.uk') !== -1) {
-          AppData.visits.push(visitData);
-        }
-        
-        for (var i = 0; i < AppData.clients.length; i++){
-          AppData.clients[i].write('data: ' + JSON.stringify([visitData]) + '\n\n');
+        console.log(visitData.url);        
+         for (var i = 0; i < AppData.clients.length; i++){
+            AppData.clients[i].write('data: ' + JSON.stringify([visitData]) + '\n\n');
+          }
         }
       })
     });
@@ -94,20 +96,20 @@ function parse_message (payload) {
 }
 
 // make a nice date object from string dd/mm/YYYY HH:MM:ss
-function parse_date (lastMessageTimeStr) {
-  var formattedDateStr = lastMessageTimeStr.split(' ')[0];
+// function parse_date (lastMessageTimeStr) {
+//   var formattedDateStr = lastMessageTimeStr.split(' ')[0];
 
-  var dayStr = formattedDateStr.split('-')[0],
-      monthStr = formattedDateStr.split('-')[1],
-      yearStr = formattedDateStr.split('-')[2];
+//   var dayStr = formattedDateStr.split('-')[0],
+//       monthStr = formattedDateStr.split('-')[1],
+//       yearStr = formattedDateStr.split('-')[2];
 
-  if (monthStr.substr(0, 1) === '0'){
-    monthStr = monthStr.substr(1, 1);
-  }
+//   if (monthStr.substr(0, 1) === '0'){
+//     monthStr = monthStr.substr(1, 1);
+//   }
 
-  var day = parseInt(dayStr),
-      month = parseInt(monthStr),
-      year = parseInt(yearStr);
+//   var day = parseInt(dayStr),
+//       month = parseInt(monthStr),
+//       year = parseInt(yearStr);
 
-  return new Date(year, month-1, day);
-}
+//   return new Date(year, month-1, day);
+// }
