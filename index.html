@@ -1,22 +1,22 @@
 <html>
 <head>
   <title>Analytics</title>
-  <link href='http://fonts.googleapis.com/css?family=Arbutus+Slab' rel='stylesheet' type='text/css'>
+  <link href='http://fonts.googleapis.com/css?family=Droid+Serif:700' rel='stylesheet' type='text/css'>
   <style type="text/css">
     html { height: 100% }
     body {
       height: 100%;
       margin: 0;
       padding: 0;
-      font-family: 'Arbutus Slab', serif;
+      font-family: 'Droid Serif', serif;
     }
     #map_canvas { height: 100%; }
     #wrapper {
       width: 300px;
       padding: 20px;
       position: absolute;
-      top: 10%;
-      right: 15%;
+      top: 60px;
+      right: 80px;
       background-color: white;
       z-index: 100;
 
@@ -57,7 +57,7 @@
   </div>
 
   <div id="wrapper">
-    <h2>Top media sources</h2>
+    <h1 style="font-size:42px;">Top 5 sources</h1>
     <div id="topvisits">
     </div>
   </div>
@@ -111,12 +111,12 @@
       }
     ];
 
-    var source = new EventSource('http://luma-bunnies.herokuapp.com/');
+    var source = new EventSource('http://luma-bunnies.heroku.com/');
 
     $(document).ready(function(){
       map = new google.maps.Map(document.getElementById("map_canvas"), {
         zoom: 6,
-        center: new google.maps.LatLng('54.4', '0'),
+        center: new google.maps.LatLng('55.5', '-1.4'),
         mapTypeId: google.maps.MapTypeId.ROADMAP
       });
       map.setOptions({styles: stylesArray});
@@ -186,7 +186,7 @@
 
       toRemove = [];
 
-      $('#count').html("<h1 style='font-size: 48px; padding: 3px; margin: 3px'>" + (markers.length).toFixed(1) + "</h1> pageviews / min");
+      $('#count').html("<h1 style='font-size: 52px; padding: 3px; margin: 3px'>" + (markers.length).toFixed(1) + "</h1> pageviews / min");
     }
 
     source.onerror = function (e) {
