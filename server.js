@@ -3,7 +3,7 @@ var fs = require('fs');
 var amqp = require('amqp');
 
 var connection = amqp.createConnection({
-  url: "amqp://a556ed26-bd69-48f7-b97e-2744796b258a_apphb.com:IRebEvT0LoS4KAVwLq9iny7nJ-AltUDl@bunny.cloudamqp.com/a556ed26-bd69-48f7-b97e-2744796b258a_apphb.com"
+  url: ""
 });
 
 var AppData = {
