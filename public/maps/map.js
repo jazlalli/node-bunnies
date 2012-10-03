@@ -60,7 +60,6 @@ var mapper = function () {
 
             markers.push(marker);
 	    },
-
         trimMarkers: function () {
             var toRemove = jQuery.grep(markers, function (marker, index) {
                 var now = new Date();        
