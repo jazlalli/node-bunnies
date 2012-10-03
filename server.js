@@ -1,18 +1,31 @@
 var http = require('http');
+var express = require('express');
 var fs = require('fs');
 var amqp = require('amqp');
 
+var app = express();
+app.configure(function () {
+  app.use(express.bodyParser());
+  app.use(express.methodOverride());
+  app.use(express.static(__dirname + '/public/'));
+  app.use(app.router);
+});
+
 var connection = amqp.createConnection({
-  url: ""
+  url: "amqp://a556ed26-bd69-48f7-b97e-2744796b258a_apphb.com:IRebEvT0LoS4KAVwLq9iny7nJ-AltUDl@bunny.cloudamqp.com/a556ed26-bd69-48f7-b97e-2744796b258a_apphb.com"
 });
 
 var AppData = {
-  clients : [],
-  visits : []
+  clients : []
 };
 
-var server = http.createServer(function (request, response) {
-  // determine whether it is the eventstream request
+app.get('/', function (request, response) {
+  response.writeHead(200, {'Content-Type': 'text/html'});
+  response.write(fs.readFileSync(__dirname + '/index.html'));
+  response.end();
+});
+
+app.get('/subscribe', function (request, response) {
   if (request.headers.accept && request.headers.accept === 'text/event-stream') {
     response.writeHead(200, {
       'Content-Type': 'text/event-stream',
@@ -24,23 +37,18 @@ var server = http.createServer(function (request, response) {
 
     AppData.clients.push(response);
     console.log('New connection');
-  } 
-  else {
-    response.writeHead(200, {'Content-Type': 'text/html'});
-    response.write(fs.readFileSync(__dirname + '/index.html'));
-    response.end();
   }
-  
+
   request.on('close', function () {
-		console.log('Connection closing');
+    console.log('Connection closing');
     if (AppData.clients.indexOf(response) >= 0) {
       AppData.clients.pop(response);
     }
-	});  
+  });
 });
 
 var port = process.env.PORT || 1337;
-server.listen(port);
+app.listen(port);
 
 console.log('Server running on port ' + port);
 
