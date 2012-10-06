@@ -64,7 +64,7 @@ var mapper = function () {
             var toRemove = jQuery.grep(markers, function (marker, index) {
                 var now = new Date();        
                 var cutOff = new Date(now);
-                cutOff.setMinutes(now.getMinutes() - 10);
+                cutOff.setMinutes(now.getMinutes() - 1);
                 
                 return (marker.time < cutOff);
             });

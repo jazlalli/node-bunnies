@@ -5,17 +5,17 @@ var viewModelBuilder = function () {
     }
 
     return {
-        modelItem: function (name, parent) {
+        modelItem: function (mediasource, parent) {
             var self = this;
 
-            self.name = ko.observable(name);
+            self.mediasource = ko.observable(mediasource);
             self.hits = ko.observable(1);
             self.incrementHits = function () {
                 self.hits(self.hits() + 1);
             }
 
             self.percentage = ko.computed(function () {
-                return ((self.hits() / parent.totalVisits()) * 100)
+                return ((self.hits() / parent.pageViewCount()) * 100)
                     .toFixed(2) + '%';
             });
         },
@@ -23,19 +23,39 @@ var viewModelBuilder = function () {
         viewModel: function () {
             var self = this;
 
-            self.totalVisits = ko.observable(0);
-            self.incrementTotalVisits = function () {
-                self.totalVisits(self.totalVisits() + 1);
+            self.pageViewCount = ko.observable(0);
+            self.incrementPageViewCount = function () {
+                self.pageViewCount(self.pageViewCount() + 1);
             }
 
-            self.topSources = ko.observableArray([]);
+            self.pageViews = ko.observableArray([]);
+            self.pageViewRate = ko.computed(function () {
+                var toRemove = jQuery.grep(self.pageViews(), function (pageview, index) {
+                    var now = new Date();
+                    var cutOff = new Date(now);
+                    cutOff.setMinutes(now.getMinutes() - 1);
+                    
+                    return (pageview < cutOff);
+                });
+           
 
-            self.updateTopSources = function (name) {
-                name = name === null ? 'no source' : name.toUpperCase();
+                $.each(toRemove, function () {
+                    if (self.pageViews().indexOf(this) >= 0) {
+                        self.pageViews().splice(self.pageViews().indexOf(this), 1);
+                    }
+                });
+
+                return self.pageViews().length;
+            });
+
+            self.topMediaSources = ko.observableArray([]);
+
+            self.update = function (mediasource) {
+                mediasource = mediasource === null ? 'no source' : mediasource.toUpperCase();
 
                 // check if the name is already in the array
-                var matchedItem = ko.utils.arrayFirst(self.topSources(), function (lastItem) {
-                    if (name === lastItem.name()) {
+                var matchedItem = ko.utils.arrayFirst(self.topMediaSources(), function (lastItem) {
+                    if (mediasource === lastItem.mediasource()) {
                         return lastItem;
                     }
                 });
@@ -43,11 +63,12 @@ var viewModelBuilder = function () {
                 if (matchedItem) {
                     matchedItem.incrementHits();
                 } else {
-                    self.topSources.push(new viewModelBuilder.modelItem(name, self));
+                    self.topMediaSources.push(new viewModelBuilder.modelItem(mediasource, self));
                 }
 
-                self.incrementTotalVisits();
-                self.topSources.sort(sortTopSources);
+                self.pageViews.push(new Date());
+                self.incrementPageViewCount();
+                self.topMediaSources.sort(sortTopSources);
             };
         }
     };
