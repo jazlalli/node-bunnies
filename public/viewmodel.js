@@ -51,7 +51,11 @@ var viewModelBuilder = function () {
             self.topMediaSources = ko.observableArray([]);
 
             self.update = function (mediasource) {
-                mediasource = mediasource === '' ? 'no source' : mediasource.toUpperCase();
+                if (mediasource === '' || mediasource == null) {
+                    'no source';
+                }
+
+                mediasource = mediasource.toUpperCase();
 
                 // check if the name is already in the array
                 var matchedItem = ko.utils.arrayFirst(self.topMediaSources(), function (lastItem) {
