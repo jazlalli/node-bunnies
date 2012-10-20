@@ -55,6 +55,7 @@ var viewModelBuilder = function () {
                     'no source';
                 }
 
+                console.log(mediasource);
                 mediasource = mediasource.toUpperCase();
 
                 // check if the name is already in the array
