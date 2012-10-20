@@ -5,7 +5,7 @@
 	"description" : "AMQP listener and client notification via Server Sent Events",
 	"dependencies" : {
 		"amqp" : ">= 0.x.x",
-		"express" : "1.x.x"
+		"express" : "3.0.x"
 	},
 	"engines" : {
 		"node" : "0.8.x",
