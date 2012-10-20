@@ -1,16 +1,16 @@
 var message = {
-    create : function (url, payload) {
+    create : function (payload) {
         return {
-            url: url,
-            ipaddress: payload.REMOTE_ADDR,
-            useragent: payload.HTTP_USER_AGENT,
+            url: payload['mi-visit-url'],
+            ipaddress: payload.IPAddress,
+            useragent: payload.UserAgent,
             site: payload.mi_urlinfo_site,
             product: payload.mi_urlinfo_product,
             pagetype: payload.mi_urlinfo_type,
-            mediasource: payload.MediaSource,
-            campaign: payload.Campaign,
-            adgroup: payload.AdGroup,
-            referrer: payload.Referrer,
+            mediasource: payload.m,
+            campaign: payload.cam,
+            adgroup: payload.adg,
+            referrer: payload.r,
             userid: payload['MI-LifeTimeCookie'],
             createtime: payload.CreateTime,
             latitude: payload.latitude,

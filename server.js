@@ -9,7 +9,7 @@ var messageObject = require('./utils/message');
 var clients = [];
 
 var connection = amqp.createConnection({
-    url: ""
+    url: "amqp://a556ed26-bd69-48f7-b97e-2744796b258a_apphb.com:IRebEvT0LoS4KAVwLq9iny7nJ-AltUDl@bunny.cloudamqp.com/a556ed26-bd69-48f7-b97e-2744796b258a_apphb.com"
 });
 
 var app = express.createServer();
@@ -65,26 +65,28 @@ connection.addListener('ready', function() {
 
         //define message handler
         queue.subscribe(function (message, headers, deliveryInfo) {
-            var encoded_payload = unescape(escape(message.data)); //quotes in url so encode again
+            
+            //quotes in url so encode again
+            var encoded_payload = unescape(escape(message.data));
             var payload = JSON.parse(encoded_payload);
 
-            //sanitize data
-            var urlParam = payload.QUERY_STRING.split('&')[1];
-            var url = urlParam.substr(4, urlParam.length);
+            var m = messageObject.create(payload);
 
-            var m = messageObject.create(url, payload);
+            console.log('new hit: ' + m.url);
 
-            //augment message with geo data and broadcast
-            geoService.locate(m.ipaddress, function (data) {
-                var geoInfo = JSON.parse(data);
+            if(m.site === 'Luma') {
+                //augment message with geo data and broadcast
+                geoService.locate(m.ipaddress, function (data) {
+                    var geoInfo = JSON.parse(data);
 
-                m.latitude = geoInfo.latitude;
-                m.longitude = geoInfo.longitude;
+                    m.latitude = geoInfo.latitude;
+                    m.longitude = geoInfo.longitude;
 
-                for (var i = 0; i < clients.length; i++) {
-                    clients[i].write('data: ' + JSON.stringify([m]) + '\n\n');
-                }
-            });
+                    for (var i = 0; i < clients.length; i++) {
+                        clients[i].write('data: ' + JSON.stringify([m]) + '\n\n');
+                    }
+                });
+            }
         });
     });
 });
