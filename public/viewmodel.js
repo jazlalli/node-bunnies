@@ -51,8 +51,8 @@ var viewModelBuilder = function () {
             self.topMediaSources = ko.observableArray([]);
 
             self.update = function (mediasource) {
-                if (mediasource === '' || mediasource == null) {
-                    'no source';
+                if (mediasource == null || mediasource === '') {
+                    mediasource = 'no source';
                 }
 
                 console.log(mediasource);
