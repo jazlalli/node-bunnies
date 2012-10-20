@@ -54,9 +54,9 @@ var viewModelBuilder = function () {
                 if (mediasource == null || mediasource === '') {
                     mediasource = 'no source';
                 }
-
-                console.log(mediasource);
-                mediasource = mediasource.toUpperCase();
+                else {
+                    mediasource = mediasource.toUpperCase();
+                }
 
                 // check if the name is already in the array
                 var matchedItem = ko.utils.arrayFirst(self.topMediaSources(), function (lastItem) {
