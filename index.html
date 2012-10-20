@@ -43,7 +43,7 @@
             var model = new viewModelBuilder.viewModel();
             ko.applyBindings(model);
 
-            var source = new EventSource('http://localhost:1337/subscribe');
+            var source = new EventSource('./subscribe');
             source.onopen = function (e) {
                 console.log('new connection');
             };
